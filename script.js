@@ -1,62 +1,80 @@
-//your JS code here. If required.
-const images = [
-  "url-to-image-1",
-  "url-to-image-2",
-  "url-to-image-3",
-  "url-to-image-4",
-  "url-to-image-5"
-];
+const imageContainer = document.getElementById("imageContainer");
+const message = document.getElementById("message");
+const resetButton = document.getElementById("resetButton");
+const verifyButton = document.getElementById("verifyButton");
+const result = document.getElementById("result");
 
-// Choose a random image to repeat
-const repeatImage = images[Math.floor(Math.random() * images.length)];
+// Define the images API URL and the number of images
+const imagesApiUrl = "https://picsum.photos/150";
+const numImages = 6;
 
-// Add a duplicate image to the array
-images.push(repeatImage);
-
-// Shuffle the array
-for (let i = images.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [images[i], images[j]] = [images[j], images[i]];
-}
-
-// Assign class names to each image tag
-const imgTags = document.querySelectorAll("img");
-for (let i = 0; i < imgTags.length; i++) {
-  imgTags[i].classList.add("img" + (i+1));
-  imgTags[i].src = images[i];
-}
-
+// Initialize the game state
+let state = 1;
 let selectedImages = [];
 
-// Add click event listeners to images
-imgTags.forEach(img => {
-  img.addEventListener("click", () => {
-    if (selectedImages.length < 2) {
-      img.classList.add("selected");
-      selectedImages.push(img);
-    }
-    if (selectedImages.length === 2) {
-      const verifyButton = document.getElementById("verify");
-      verifyButton.classList.remove("hidden");
-      verifyButton.addEventListener("click", () => {
-        if (selectedImages[0].classList[0] === selectedImages[1].classList[0]) {
-          document.getElementById("para").textContent = "You are a human. Congratulations!";
-        } else {
-          document.getElementById("para").textContent = "We can't verify you as a human. You selected the non-identical tiles.";
-        }
-        verifyButton.classList.add("hidden");
-      });
-    }
-    const resetButton = document.getElementById("reset");
-    resetButton.classList.remove("hidden");
-    resetButton.addEventListener("click", () => {
-      selectedImages.forEach(img => {
-        img.classList.remove("selected");
-      });
-      selectedImages = [];
-      document.getElementById("verify").classList.add("hidden");
-      resetButton.classList.add("hidden");
-      document.getElementById("para").textContent = "";
+// Load the images and render them
+function loadImages() {
+  let imageIds = getRandomImageIds();
+  imageContainer.innerHTML = "";
+  imageIds.forEach(id => {
+    let imageDiv = document.createElement("div");
+    imageDiv.classList.add("image");
+    let img = document.createElement("img");
+    img.src = `${imagesApiUrl}?random=${id}`;
+    img.classList.add(`img${id}`);
+    img.addEventListener("click", () => {
+      if (state === 1) {
+        selectedImages = [id];
+        resetButton.style.display = "block";
+        state = 2;
+      } else if (state === 2) {
+        selectedImages.push(id);
+        verifyButton.style.display = "block";
+        state = 3;
+      }
     });
+    imageDiv.appendChild(img);
+    imageContainer.appendChild(imageDiv);
   });
-});
+}
+
+// Get an array of random image IDs, with one ID repeated
+function getRandomImageIds() {
+  let ids = [];
+  for (let i = 1; i <= numImages; i++) {
+    ids.push(i);
+  }
+  let repeatId = Math.floor(Math.random() * numImages) + 1;
+  ids.push(repeatId);
+  ids.sort(() => Math.random() - 0.5);
+  return ids;
+}
+
+// Reset the game state
+function reset() {
+  selectedImages = [];
+  resetButton.style.display = "none";
+  verifyButton.style.display = "none";
+  result.textContent = "";
+  state = 1;
+}
+
+// Verify the selected images
+function verify() {
+  if (selectedImages.length === 2) {
+    if (selectedImages[0] === selectedImages[1]) {
+      result.textContent = "You are a human. Congratulations!";
+    } else {
+      result.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
+    }
+    verifyButton.style.display = "none";
+    state = 4;
+  }
+}
+
+// Add event listeners to the buttons
+resetButton.addEventListener("click", reset);
+verifyButton.addEventListener("click", verify);
+
+// Start the game by loading the images
+loadImages();
