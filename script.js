@@ -13,97 +13,66 @@
 //     randomsequence.innerHTML += `<img class="${arr[Math.floor(Math.random()*arr.length)]}"/>`;
 //  }
 
-//your code here
-let resetbtn = document.querySelector("#reset");
-let verifybtn = document.querySelector("#verify");
+const images = document.querySelectorAll(".img");
+const resetButton = document.getElementById("reset");
+const verifyButton = document.getElementById("verify");
+const para = document.getElementById("para");
 
+let clickedImages = [];
 
-let imgtag = document.createElement("img");
-let randomvalue = Math.floor(Math.random()*5) +1;
-imgtag.setAttribute("class",`img${randomvalue}`);
-document.querySelector(".flex").appendChild(imgtag);
+// Function to randomly arrange the images.
+function randomizeImages() {
+  images.forEach((image) => {
+    image.style.order = Math.floor(Math.random() * 6);
+  });
+}
 
+// Function to handle the click event on an image.
+function handleImageClick(event) {
+  const image = event.target;
 
-let images = document.querySelectorAll("img");
+  // Check if the image has already been clicked.
+  if (clickedImages.includes(image)) {
+    return;
+  }
 
+  clickedImages.push(image);
+
+  // If two images have been clicked, show the verify button.
+  if (clickedImages.length === 2) {
+    verifyButton.classList.remove("hidden");
+  }
+
+  // If the reset button is clicked, reset the state.
+  if (event.target === resetButton) {
+    clickedImages = [];
+    verifyButton.classList.add("hidden");
+    para.innerHTML = "";
+  }
+}
+
+// Function to handle the click event on the verify button.
+function handleVerifyClick() {
+  // Check if the two clicked images are identical.
+  if (clickedImages[0].classList.contains(clickedImages[1].classList[0])) {
+    para.innerHTML = "You are a human. Congratulations!";
+  } else {
+    para.innerHTML = "We can't verify you as a human. You selected the non-identical tiles.";
+  }
+
+  // Reset the state.
+  clickedImages = [];
+  verifyButton.classList.add("hidden");
+}
+
+// Initialize the code.
+randomizeImages();
+
+// Attach event listeners to the images and buttons.
 images.forEach((image) => {
-    image.addEventListener("click", () => {
-        image.classList.toggle("selected");
-
-        if(isrestbtnvalid()){
-         resetbtn.style.display="inline-block";
-        }
-        else{
-            resetbtn.style.display="none";
-        }
-
-        if(isverifybtnvalid()){
-            verifybtn.style.display="inline-block";
-           }
-           else{
-               verifybtn.style.display="none";
-           }
-
-    });
-
+  image.addEventListener("click", handleImageClick);
 });
 
+resetButton.addEventListener("click", handleResetClick);
 
-function isrestbtnvalid(){
-    for(let i=0;i<images.length;i++){
-        if(images[i].classList.contains("selected")){
-            return true;
-        }      
-    }
-    return false;
-}
-
-function isverifybtnvalid(){
-    let count=0;
-    for(let i=0;i<images.length;i++){
-        if(images[i].classList.contains("selected")){
-            count++;
-        }      
-    }
-    return (count==2);
-}
-
-resetbtn.addEventListener("click", () => {
-    for(let i=0;i<images.length;i++){
-        if(images[i].classList.contains("selected")){
-            images[i].classList.remove("selected");
-        }      
-    }
-    resetbtn.style.display="none";
-
-    let ps = document.querySelectorAll("p");
-    ps.forEach((p) =>{
-        document.querySelector("main").removeChild(p);
-    });
-    
-});
-
-verifybtn.addEventListener("click", () => {
-    let p = document.createElement("p");
-    p.setAttribute("id","para");
-
-
-  let classarr = document.querySelectorAll(".selected");
-  if(classarr[0].getAttribute("class")==classarr[1].getAttribute("class")){
-     p.innerText = "You are a human. Congratulations!"
-  }
-  else{
-    p.innerText = "We can't verify you as a human. You selected the non-identical tiles."
-  }
-
-  document.querySelector("main").appendChild(p);
-  verifybtn.style.display="none";
-
-  for(let i=0;i<images.length;i++){
-    if(images[i].classList.contains("selected")){
-        images[i].classList.remove("selected");
-    }      
- }
-   
-});
-
+verifyButton.addEventListener("click", handleVerifyClick);
